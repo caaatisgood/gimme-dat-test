@@ -1,5 +1,3 @@
-// import Comp from './src/components/PersonInfo'
-
 const get = require('lodash/get')
 const fs = require('fs')
 const babylon = require('@babel/parser')
@@ -11,14 +9,14 @@ const parserOptions = {
   ]
 }
 
+const getCode = path => fs.readFileSync(path, 'utf8')
+const parseAst = code => babylon.parse(code, parserOptions)
+
 const TYPES = {
   JSX_OPENING_ELEMENT: 'JSXOpeningElement',
   JSX_EXPRESSION_CONTAINER: 'JSXExpressionContainer',
   IDENTIFIER: 'Identifier',
 }
-
-const getCode = path => fs.readFileSync(path, 'utf8')
-const parseAst = code => babylon.parse(code, parserOptions)
 
 const checkHasJsxOpeningEl = node => (
   get(node, 'openingElement.type') === TYPES.JSX_OPENING_ELEMENT
@@ -82,20 +80,20 @@ const getReturnStatementOfRender = ast => {
   return renderReturn
 }
 
-const gimmeTest = ({ className, propName }) => (`
+const gimmeTest = ({ className, propName }) => `
 it('should render props.${propName}', () => {
   const doc = renderDoc()
   expect(doc.find('.${className}').text()).toEqual(
     props.${propName}
   )
 })
-`)
+`
 
-const generateCode = pairs => {
-  return pairs.reduce((code, [className, propName]) => (
+const generateCode = pairs => (
+  pairs.reduce((code, [className, propName]) => (
     `${code}${gimmeTest({ className, propName })}`
   ), '')
-}
+)
 
 const returnStatementOfRender = getReturnStatementOfRender(ast)
 search(returnStatementOfRender.argument)
